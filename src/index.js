@@ -182,10 +182,10 @@ function dragDrop(e) {
         
     }
     
-    for (let i = 0; i < boards.length; i++) {
-        for (let j = 0; j < boards[i].length; j++) {
+    for (let i = 0; i < boards.board.length; i++) {
+        for (let j = 0; j < boards.board[i].length; j++) {
             counter++;
-            if (boards[i][j] !== '') {
+            if (boards.board[i][j] !== '') {
                 const cell = playerBoard.board.children[counter];
                 cell.id = 'ship';
             } else {
@@ -193,7 +193,12 @@ function dragDrop(e) {
             }
         }
     }
-    beingDragged.remove();
+    if (boards.ok === 1) {
+        beingDragged.remove();
+    } else {
+        e.target.id = 'water';
+    }
+    
 }
 
 function dragOver(e) {

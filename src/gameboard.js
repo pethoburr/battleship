@@ -16,6 +16,7 @@ function make2Darray(row, col) {
 let missed = [];
 let board = make2Darray(10, 10);
 let CpuBoard = make2Darray(10, 10);
+let ok;
 
 export default class Gameboard {
     constructor(shipsArr, destroyer, submarine, cruiser, battleship, carrier) {
@@ -83,6 +84,29 @@ export default class Gameboard {
         return board;
     }
 
+    canPlaceShipPlayer(board, j, i, ship, angle) {
+        if(angle === 'column') {
+            if(i + ship.length > 9) {
+                return false;
+            }
+            for(let l = i; l < i + ship.length; l++) {
+                if(board[l][j] !== '') {
+                    return false;
+                }
+            }
+        } else {
+            if(j + ship.length > 9) {
+                return false;
+            }
+            for(let l = j; l < j + ship.length; l++) {
+                if(board[i][l] !== '') {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     placeDroppedShip(ship, index, angle) {
         console.log(index);
         let counter = 0;
@@ -90,29 +114,38 @@ export default class Gameboard {
             for(let j = 0; j < board.length; j++) {
                 counter++;
                 if(counter === index) {
-                    console.log(counter,index);
+                    
                     for(let k = 0; k < this.shipsArr.length; k++) {
                         if(ship === this.shipsArr[k].name) {
-                            if(angle === 'row') {
+                            console.log(i,j,this.shipsArr[k].length);
+                            if(this.canPlaceShipPlayer(board, j, i, this.shipsArr[k], angle)) {
                                 board[i][j] = this.shipsArr[k];
-                                console.log(`row:${this.shipsArr[k]},${board[i][j]}`)
-                                for (let l = 0; l < this.shipsArr[k].length; l++) {
-                                    board[i][j++] = this.shipsArr[k];
-                                    
+                                if(angle === 'row') {
+                                    console.log(`row:${this.shipsArr[k]},${board[i][j]}`)
+                                    for (let l = 0; l < this.shipsArr[k].length; l++) {
+                                        board[i][j++] = this.shipsArr[k];
+                                        
+                                    }
+                                } else {
+                                    console.log(this.shipsArr[k],board[i][j])
+                                    for(let m = 0; m < this.shipsArr[k].length; m++) {
+                                        board[i++][j] = this.shipsArr[k];
+                                        
+                                    }
                                 }
+                                ok = 1;
                             } else {
-                                console.log(this.shipsArr[k],board[i][j])
-                                for(let m = 0; m < this.shipsArr[k].length; m++) {
-                                    board[i++][j] = this.shipsArr[k];
-                                    
-                                }
+                                alert('cant place ship there u donkey');
+                                ok = 2;
+                                return { board, ok};
                             }
+                            
                         }
                     }
                 }
             }
         }
-        return board;
+        return { board, ok };
     }
 
     receiveAttackCpu([x, y], board) {
