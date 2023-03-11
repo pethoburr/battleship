@@ -1,13 +1,4 @@
 import _ from 'lodash';
-import Ship from './ships.js';
-import './styles.css';
-
-const destroyer = new Ship('destroyer', 4, 0);
-const submarine = new Ship('submarine', 3, 0);
-const cruiser = new Ship('cruiser', 3, 0);
-const battleship = new Ship('battleship', 4, 0);
-const carrier = new Ship('carrier', 5, 0);
-const shipsArr = [destroyer, submarine, cruiser, battleship, carrier];
 
 function make2Darray(row, col) {
     let arr = new Array(row);
@@ -23,43 +14,146 @@ function make2Darray(row, col) {
 }
 
 let missed = [];
-const board = make2Darray(10, 10);
+let board = make2Darray(10, 10);
+let CpuBoard = make2Darray(10, 10);
 
 export default class Gameboard {
-    constructor() {
-        
+    constructor(shipsArr, destroyer, submarine, cruiser, battleship, carrier) {
+        this.shipsArr = shipsArr;
+        this.destroyer = destroyer;
+        this.submarine = submarine;
+        this.cruiser = cruiser;
+        this.battleship = battleship;
+        this.carrier = carrier;
     }
+
+    placeCpuShips() {
+        const boardSize = 10;
+        this.shipsArr.forEach((ship) => {
+            let isShipPlaced = false;
+            while(!isShipPlaced) {
+                const isHorizontal = Math.random() < 0.5;
+                const row = Math.floor(Math.random() * boardSize);
+                const col = Math.floor(Math.random() * boardSize);
+                if (this.canPlaceShip(CpuBoard, row, col, ship, isHorizontal)) {
+                    this.placeCpuShip(CpuBoard, row, col, ship, isHorizontal)
+                    isShipPlaced = true;
+                }
+            }
+        });
+        return CpuBoard;  
+    }
+
+    canPlaceShip(board, row, col, length, isHorizontal) {
+        if(isHorizontal) {
+            if(col + length.length > 10) {
+                return false;
+            }
+            for (let i = col; i < col + length.length; i++) {
+                if(board[row][i] !== '') {
+                    return false;
+                }
+            } 
+        } else {
+            if(row + length.length > 10) {
+                return false;
+            }
+            for(let i = row; i < row + length.length; i++) {
+                if(board[i][col] !== '') {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    placeCpuShip(board, row, col, length, isHorizontal) {
+            if(isHorizontal) {
+                for(let i = col; i < col + length.length; i++) {
+                    board[row][i] = length;
+                }
+            } else {
+                for(let i = row; i < row + length.length; i++) {
+                    board[i][col] = length;
+                }
+            }
+    }
+
     placeShip() {
-        for (let i = 0; i < destroyer.length; i++) {
-            board[0][i] = destroyer;
-        }
-        for (let i = 0; i < submarine.length; i++) {
-            board[2][i] = submarine;
-        }
-        for (let i = 0; i < cruiser.length; i++) {
-            board[4][i] = cruiser;
-        }
-        for (let i = 0; i < battleship.length; i++) {
-            board[6][i] = battleship;
-        }
-        for (let i = 0; i < carrier.length; i++) {
-            board[8][i] = carrier;
+        return board;
+    }
+
+    placeDroppedShip(ship, index, angle) {
+        console.log(index);
+        let counter = 0;
+        for(let i = 0; i < board.length; i++) {
+            for(let j = 0; j < board.length; j++) {
+                counter++;
+                if(counter === index) {
+                    console.log(counter,index);
+                    for(let k = 0; k < this.shipsArr.length; k++) {
+                        if(ship === this.shipsArr[k].name) {
+                            if(angle === 'row') {
+                                board[i][j] = this.shipsArr[k];
+                                console.log(`row:${this.shipsArr[k]},${board[i][j]}`)
+                                for (let l = 0; l < this.shipsArr[k].length; l++) {
+                                    board[i][j++] = this.shipsArr[k];
+                                    
+                                }
+                            } else {
+                                console.log(this.shipsArr[k],board[i][j])
+                                for(let m = 0; m < this.shipsArr[k].length; m++) {
+                                    board[i++][j] = this.shipsArr[k];
+                                    
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         return board;
+    }
+
+    receiveAttackCpu([x, y], board) {
+        for (let i = 0; i < board.length; i++) {
+            for (let j = 0; j < board[i].length; j++) {
+                if (board[x][y] !== '') {
+                    for (let i = 0; i < this.shipsArr.length; i++) {
+                        if (board[x][y].name === this.shipsArr[i].name) {
+                            this.shipsArr[i].hit();
+                            let check = this.shipsArr[i].isSunk();
+                            if (check === 1) {
+                                alert('U SUNK THAT GOOF OPPS SHIP!');
+                            }
+                            let allSunkCheck = this.allSunk();
+                            if(allSunkCheck === 5) {
+                               return alert('congrats you won');
+                            }
+                            return;
+                        }
+                    }
+                } else {
+                    missed.push(board[x][y]);
+                }
+                
+            }
+        }
+        return missed;
     }
     receiveAttack([x, y]) {
         let board = this.placeShip();
         for (let i = 0; i < board.length; i++) {
             for (let j = 0; j < board[i].length; j++) {
                 if (board[x][y] !== undefined) {
-                    for (let i = 0; i < shipsArr.length; i++) {
-                        if (board[x][y].name === shipsArr[i].name) {
-                            shipsArr[i].hit();
-                            let check = shipsArr[i].isSunk();
+                    for (let i = 0; i < this.shipsArr.length; i++) {
+                        if (board[x][y].name === this.shipsArr[i].name) {
+                            this.shipsArr[i].hit();
+                            let check = this.shipsArr[i].isSunk();
                             if (check === 1) {
-                                console.log('u sunk this bitch');
+                                alert('U SUNK THAT GOOF OPPS SHIP!');
                             }
-                            return shipsArr[i].name;
+                            return this.shipsArr[i].name;
                         }
                     }
                 } else {
@@ -73,9 +167,9 @@ export default class Gameboard {
 
     allSunk() {
         let sunken = [];
-        for (let i = 0; i < shipsArr.length; i++) {
-                if (shipsArr[i].isSunk()) {
-                sunken.push(shipsArr[i]);
+        for (let i = 0; i < this.shipsArr.length; i++) {
+                if (this.shipsArr[i].isSunk()) {
+                sunken.push(this.shipsArr[i]);
             }
         }
         return sunken.length;

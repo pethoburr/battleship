@@ -19,11 +19,23 @@ describe('Ship', () => {
 describe('gameboard', () => {
     let board;
     beforeEach(() => {
-        board = new Gameboard()
+           const destroyer = new Ship('destroyer', 4, 0);
+    const submarine = new Ship('submarine', 3, 0);
+    const cruiser = new Ship('cruiser', 3, 0);
+    const battleship = new Ship('battleship', 4, 0);
+    const carrier = new Ship('carrier', 5, 0);
+    const shipsArr = [destroyer, submarine, cruiser, battleship, carrier];
+    board = new Gameboard(shipsArr, destroyer, submarine, cruiser, battleship,  carrier);
     })
 
     it ('places ships(check error array instead of typing out whole array)', () => {
         expect(board.placeShip()).toBe(['fuck'])
+    })
+
+    it ('places CPU ships randomly', () => {
+        expect(
+            board.placeCpuShips()).toBe(['check error array']
+            )
     })
 
     it ('recieves attack', () => {
@@ -61,6 +73,6 @@ describe('Player', () => {
     })
 
     it('doesnt shoot missed, or hit, or same shot ever again', () => {
-        expect(player.cpuAttack([[0,2],[0,3]])).toBe([0,1])
+        expect(player.cpuAttack()).toBe([0,1])
     })
 })
